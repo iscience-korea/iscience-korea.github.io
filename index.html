@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>자유게시판</title>
+<link rel="stylesheet" href="static/style.css">
+<style>
+:root{
+  --bg:#f4f5f7;
+  --card:#ffffff;
+  --primary:#4361ee;
+  --primary-dark:#3347c9;
+  --text:#1f2330;
+  --text-muted:#6b7280;
+  --border:#e5e7eb;
+  --radius:14px;
+  --shadow:0 2px 10px rgba(0,0,0,0.06);
+  --shadow-hover:0 6px 20px rgba(0,0,0,0.10);
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  font-family:'Pretendard','Segoe UI',system-ui,-apple-system,'Malgun Gothic',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  line-height:1.6;
+}
+
+.container{
+  max-width:840px;
+  margin:0 auto;
+  padding:0 20px;
+}
+
+/* Topbar */
+.topbar{
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.topbar-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 20px;
+}
+.logo{
+  font-size:20px;
+  margin:0;
+  cursor:pointer;
+  font-weight:700;
+}
+
+/* Buttons */
+.btn{
+  border:none;
+  border-radius:10px;
+  padding:10px 18px;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all .15s ease;
+}
+.btn-primary{
+  background:var(--primary);
+  color:#fff;
+}
+.btn-primary:hover{ background:var(--primary-dark); }
+.btn-ghost{
+  background:transparent;
+  color:var(--text-muted);
+  padding:8px 12px;
+}
+.btn-ghost:hover{ color:var(--text); }
+.btn-sm{
+  padding:6px 12px;
+  font-size:13px;
+}
+
+/* Views */
+.view{ padding:24px 0 60px; }
+.hidden{ display:none !important; }
+
+/* Post list */
+.post-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:12px;
+}
+.post-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 20px;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+  transition:box-shadow .15s ease, transform .15s ease;
+}
+.post-card:hover{
+  box-shadow:var(--shadow-hover);
+  transform:translateY(-1px);
+}
+.post-card-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:12px;
+}
+.post-title{
+  font-size:16px;
+  font-weight:700;
+  margin:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.post-meta{
+  font-size:13px;
+  color:var(--text-muted);
+  display:flex;
+  gap:10px;
+  margin-top:6px;
+  flex-wrap:wrap;
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+
+.empty-state{
+  text-align:center;
+  color:var(--text-muted);
+  padding:60px 0;
+}
+
+/* Pagination */
+.pagination{
+  display:flex;
+  justify-content:center;
+  gap:6px;
+  margin-top:24px;
+  flex-wrap:wrap;
+}
+.page-btn{
+  min-width:36px;
+  height:36px;
+  border:1px solid var(--border);
+  background:var(--card);
+  border-radius:8px;
+  cursor:pointer;
+  font-size:14px;
+  color:var(--text);
+}
+.page-btn:hover{ background:#eef1ff; }
+.page-btn.active{
+  background:var(--primary);
+  color:#fff;
+  border-color:var(--primary);
+  font-weight:700;
+}
+.page-btn:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
+
+/* Form card (write) */
+.form-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+  margin-top:16px;
+  box-shadow:var(--shadow);
+}
+.form-card label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  font-size:14px;
+  font-weight:600;
+  color:var(--text-muted);
+}
+.form-card input,
+.form-card textarea{
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:10px 12px;
+  font-size:15px;
+  font-family:inherit;
+  color:var(--text);
+  resize:vertical;
+}
+.form-card input:focus,
+.form-card textarea:focus{
+  outline:none;
+  border-color:var(--primary);
+}
+.form-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+}
+
+/* Detail */
+.post-detail{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:24px;
+  margin-top:14px;
+  box-shadow:var(--shadow);
+}
+.post-detail h2{
+  margin:0 0 8px;
+}
+.post-detail .post-meta{
+  margin-bottom:16px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--border);
+}
+.post-detail .post-body{
+  white-space:pre-wrap;
+  font-size:15px;
+}
+
+/* Comments */
+.comment-section{ margin-top:32px; }
+.comment-section h3{
+  font-size:16px;
+  margin-bottom:12px;
+}
+.comment-form{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px;
+  margin-bottom:16px;
+}
+.comment-form input,
+.comment-form textarea{
+  border:1px solid var(--border);
+  border-radius:8px;
+  padding:8px 10px;
+  font-family:inherit;
+  font-size:14px;
+  resize:vertical;
+}
+.comment-form button{ align-self:flex-end; }
+
+.comment-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.comment-item{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 14px;
+}
+.comment-item-top{
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+  color:var(--text-muted);
+  margin-bottom:4px;
+}
+.comment-author{ font-weight:700; color:var(--text); }
+.comment-content{ font-size:14px; white-space:pre-wrap; }
+.no-comments{
+  color:var(--text-muted);
+  font-size:14px;
+  text-align:center;
+  padding:20px 0;
+}
+
+/* Toast */
+.toast{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#1f2330;
+  color:#fff;
+  padding:10px 18px;
+  border-radius:8px;
+  font-size:14px;
+  box-shadow:var(--shadow-hover);
+  z-index:100;
+  transition:opacity .2s ease;
+}
+
+@media (max-width:600px){
+  .container{ padding:0 14px; }
+  .post-card-top{ flex-direction:column; align-items:flex-start; gap:4px; }
+}
+
+</style>
+
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6876684539007546"
+     crossorigin="anonymous"></script>
+
+
+</head>
+<body>
+
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <h1 class="logo" onclick="navigate('list')">📋 자유게시판</h1>
+      <button class="btn btn-primary" onclick="navigate('write')">✏️ 글쓰기</button>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <!-- 목록 화면 -->
+    <section id="view-list" class="view">
+      <div id="post-list" class="post-list"></div>
+      <div id="pagination" class="pagination"></div>
+    </section>
+
+    <!-- 글쓰기 화면 -->
+    <section id="view-write" class="view hidden">
+      <h2>새 글 작성</h2>
+      <form id="form-write" class="form-card">
+        <label>작성자
+          <input type="text" id="write-author" placeholder="익명" maxlength="50">
+        </label>
+        <label>제목
+          <input type="text" id="write-title" placeholder="제목을 입력하세요" maxlength="200" required>
+        </label>
+        <label>내용
+          <textarea id="write-content" rows="10" placeholder="내용을 입력하세요" required></textarea>
+        </label>
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" onclick="navigate('list')">취소</button>
+          <button type="submit" class="btn btn-primary">등록하기</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 상세 화면 -->
+    <section id="view-detail" class="view hidden">
+      <button class="btn btn-ghost" onclick="navigate('list')">← 목록으로</button>
+      <article id="post-detail" class="post-detail"></article>
+
+      <div class="comment-section">
+        <h3>댓글 <span id="comment-count">(0)</span></h3>
+        <form id="form-comment" class="comment-form">
+          <input type="text" id="comment-author" placeholder="닉네임 (선택)" maxlength="50">
+          <textarea id="comment-content" rows="2" placeholder="댓글을 입력하세요" required></textarea>
+          <button type="submit" class="btn btn-primary">등록</button>
+        </form>
+        <div id="comment-list" class="comment-list"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+
+<script src="static/app.js"></script>
+
+
+  <script>
+// =========================================
+// 자유게시판 프론트엔드 로직
+// 백엔드 API: /iscience/api  (Apache ProxyPass 기준)
+// =========================================
+
+const API_BASE = '/iscience/api';
+const PAGE_SIZE = 10;
+
+let state = {
+  currentView: 'list',
+  currentPage: 1,
+  currentPostId: null,
+};
+
+// ---------- 화면 전환 ----------
+function navigate(view, payload) {
+  document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
+  document.getElementById(`view-${view}`).classList.remove('hidden');
+  state.currentView = view;
+
+  if (view === 'list') {
+    loadPosts(payload && payload.page ? payload.page : 1);
+  } else if (view === 'write') {
+    document.getElementById('form-write').reset();
+  } else if (view === 'detail') {
+    state.currentPostId = payload.id;
+    loadDetail(payload.id);
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---------- 토스트 ----------
+let toastTimer = null;
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.remove('hidden');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.add('hidden'), 2200);
+}
+
+// ---------- 유틸 ----------
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str ?? '';
+  return div.innerHTML;
+}
+
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}.${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+async function apiFetch(path, options = {}) {
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options,
+    });
+  } catch (networkErr) {
+    // 서버 자체에 도달 못한 경우 (DNS, 네트워크, CORS 사전 차단 등)
+    console.error('네트워크 오류:', networkErr);
+    throw new Error('서버에 연결할 수 없습니다. (네트워크/CORS 확인)');
+  }
+
+  if (!res.ok) {
+    let detail = `요청 처리 중 오류가 발생했습니다. (HTTP ${res.status})`;
+    const rawText = await res.text();
+    try {
+      const err = JSON.parse(rawText);
+      if (Array.isArray(err.detail)) {
+        // FastAPI 422 검증 오류: [{loc, msg, type}, ...]
+        detail = err.detail.map(d => `${(d.loc || []).join('.')} : ${d.msg}`).join(' / ');
+      } else if (typeof err.detail === 'string') {
+        detail = err.detail;
+      }
+    } catch (_) {
+      // JSON이 아닌 응답(HTML 에러 페이지 등) → 콘솔에 원문 남김
+      console.error(`서버 응답이 JSON이 아님 (status ${res.status}):`, rawText.slice(0, 500));
+    }
+    throw new Error(detail);
+  }
+  return res.status === 204 ? null : res.json();
+}
+
+// ---------- 글 목록 ----------
+async function loadPosts(page = 1) {
+  state.currentPage = page;
+  const listEl = document.getElementById('post-list');
+  listEl.innerHTML = `<div class="empty-state">불러오는 중...</div>`;
+
+  try {
+    const data = await apiFetch(`/posts?page=${page}&page_size=${PAGE_SIZE}`);
+    renderList(data);
+  } catch (e) {
+    listEl.innerHTML = `<div class="empty-state">목록을 불러오지 못했습니다.<br>${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderList(data) {
+  const listEl = document.getElementById('post-list');
+  const { items, total, page, page_size } = data;
+
+  if (!items || items.length === 0) {
+    listEl.innerHTML = `<div class="empty-state">아직 등록된 글이 없습니다.<br>첫 글을 작성해보세요! ✍️</div>`;
+    document.getElementById('pagination').innerHTML = '';
+    return;
+  }
+
+  listEl.innerHTML = items.map(post => `
+    <div class="post-card" onclick="navigate('detail', {id: ${post.id}})">
+      <div class="post-card-top">
+        <h3 class="post-title">${escapeHtml(post.title)}</h3>
+        <span class="badge">👁 ${post.view_count}</span>
+      </div>
+      <div class="post-meta">
+        <span>✍️ ${escapeHtml(post.author || '익명')}</span>
+        <span>🕒 ${formatDate(post.created_at)}</span>
+      </div>
+    </div>
+  `).join('');
+
+  renderPagination(total, page, page_size);
+}
+
+function renderPagination(total, page, pageSize) {
+  const pagEl = document.getElementById('pagination');
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+  let html = '';
+  html += `<button class="page-btn" ${page <= 1 ? 'disabled' : ''} onclick="loadPosts(${page - 1})">‹</button>`;
+
+  const windowSize = 2;
+  const start = Math.max(1, page - windowSize);
+  const end = Math.min(totalPages, page + windowSize);
+
+  if (start > 1) html += `<button class="page-btn" onclick="loadPosts(1)">1</button>`;
+  if (start > 2) html += `<span class="page-btn" style="border:none;background:none;">…</span>`;
+
+  for (let p = start; p <= end; p++) {
+    html += `<button class="page-btn ${p === page ? 'active' : ''}" onclick="loadPosts(${p})">${p}</button>`;
+  }
+
+  if (end < totalPages - 1) html += `<span class="page-btn" style="border:none;background:none;">…</span>`;
+  if (end < totalPages) html += `<button class="page-btn" onclick="loadPosts(${totalPages})">${totalPages}</button>`;
+
+  html += `<button class="page-btn" ${page >= totalPages ? 'disabled' : ''} onclick="loadPosts(${page + 1})">›</button>`;
+
+  pagEl.innerHTML = html;
+}
+
+// ---------- 글쓰기 ----------
+document.getElementById('form-write').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const title = document.getElementById('write-title').value.trim();
+  const author = document.getElementById('write-author').value.trim() || '익명';
+  const content = document.getElementById('write-content').value.trim();
+
+  if (!title || !content) {
+    showToast('제목과 내용을 입력해주세요.');
+    return;
+  }
+
+  try {
+    const post = await apiFetch('/posts', {
+      method: 'POST',
+      body: JSON.stringify({ title, author, content }),
+    });
+    showToast('글이 등록되었습니다.');
+    navigate('list', { page: 1 });
+  } catch (e) {
+    showToast(e.message);
+  }
+});
+
+// ---------- 상세 보기 ----------
+async function loadDetail(id) {
+  const detailEl = document.getElementById('post-detail');
+  const commentListEl = document.getElementById('comment-list');
+  detailEl.innerHTML = `<div class="empty-state">불러오는 중...</div>`;
+  commentListEl.innerHTML = '';
+
+  try {
+    const post = await apiFetch(`/posts/${id}`);
+    renderDetail(post);
+  } catch (e) {
+    detailEl.innerHTML = `<div class="empty-state">글을 불러오지 못했습니다.<br>${escapeHtml(e.message)}</div>`;
+  }
+}
+
+function renderDetail(post) {
+  const detailEl = document.getElementById('post-detail');
+  detailEl.innerHTML = `
+    <h2>${escapeHtml(post.title)}</h2>
+    <div class="post-meta">
+      <span>✍️ ${escapeHtml(post.author || '익명')}</span>
+      <span>🕒 ${formatDate(post.created_at)}</span>
+      <span>👁 조회 ${post.view_count}</span>
+    </div>
+    <div class="post-body">${escapeHtml(post.content)}</div>
+  `;
+
+  renderComments(post.comments || []);
+}
+
+function renderComments(comments) {
+  document.getElementById('comment-count').textContent = `(${comments.length})`;
+  const listEl = document.getElementById('comment-list');
+
+  if (comments.length === 0) {
+    listEl.innerHTML = `<div class="no-comments">첫 댓글을 남겨보세요.</div>`;
+    return;
+  }
+
+  listEl.innerHTML = comments.map(c => `
+    <div class="comment-item">
+      <div class="comment-item-top">
+        <span class="comment-author">${escapeHtml(c.author || '익명')}</span>
+        <span>${formatDate(c.created_at)}</span>
+      </div>
+      <div class="comment-content">${escapeHtml(c.content)}</div>
+    </div>
+  `).join('');
+}
+
+// ---------- 댓글 등록 ----------
+document.getElementById('form-comment').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const author = document.getElementById('comment-author').value.trim() || '익명';
+  const content = document.getElementById('comment-content').value.trim();
+
+  if (!content) {
+    showToast('댓글 내용을 입력해주세요.');
+    return;
+  }
+  if (!state.currentPostId) return;
+
+  try {
+    await apiFetch(`/posts/${state.currentPostId}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ author, content }),
+    });
+    document.getElementById('comment-author').value = '';
+    document.getElementById('comment-content').value = '';
+    showToast('댓글이 등록되었습니다.');
+    // 상세를 다시 불러오면 조회수가 또 올라가므로, 댓글만 다시 받아오는 대신 목록만 갱신
+    const post = await apiFetch(`/posts/${state.currentPostId}`);
+    // 조회수 중복 증가 방지가 필요하면 백엔드에 /posts/{id}/detail-nohit 같은 별도 엔드포인트를 추가하세요.
+    renderDetail(post);
+  } catch (e) {
+    showToast(e.message);
+  }
+});
+
+// ---------- 초기 진입 ----------
+document.addEventListener('DOMContentLoaded', () => {
+  navigate('list');
+});
+
+
+
+
+
+</script>
+
+<!-- 위로 가기 버튼 -->
+<button id="scrollTopBtn" title="맨 위로 이동">▲</button>
+
+<style>
+#scrollTopBtn {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+    background-color: #0078d7;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    z-index: 9999;
+}
+
+#scrollTopBtn:hover {
+    background-color: #005fa3;
+}
+</style>
+
+<script>
+document.getElementById("scrollTopBtn").addEventListener("click", function() {
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+});
+</script>
+
+
+
+<br></br>
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+	<tr bgcolor="#FFCC00">	
+	<td colspan="3" height="24"><div align="center"><span class="style1"><a href="https://아이사이언스.com">아이사이언스.com</a> <a href="https://yukkascience.com/iscience/references/info_authors.html">저자 정보</a> <a href="https://yukkascience.com/iscience/references/info_books.html">책 정보</a> <a href="https://yukkascience.com/iscience/references/blogs.html">블로그글 모음</a>  <a>자유게시판</a>  </span></div></td>
+	
+  </tr>
+
+
+
+
+
+</body>
+</html>
